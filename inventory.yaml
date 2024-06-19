@@ -23,6 +23,6 @@ basic:
     RM_PORT: 22
     RM_USER: ansible
     RM_PASSWORD: ansible
-    GIT_URL: https://github.com/Burtov4ik/pt_bot.git
+    GIT_URL: https://github.com/Burtov4ik/devops_bot.git
     TOKEN: 
     POSTGRES_VERSION: 14
