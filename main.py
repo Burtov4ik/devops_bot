@@ -91,7 +91,7 @@ def get_auths_command(update: Update, context):
     return execute_ssh_command(update, context, ssh_command)
 
 def get_critical_command(update: Update, context):
-    ssh_command = "journalctl -p crit | tail -n 5"
+    ssh_command = "journalctl --priority=3 --no-pager -n 5"
     return execute_ssh_command(update, context, ssh_command)
 
 def get_ps_command(update: Update, context):
