@@ -92,20 +92,22 @@ def get_auths_command(update: Update, context):
 
 def get_critical_command(update, context):
     """Отправить последние 5 критических событий"""
-    ssh_command = "journalctl -p 2 -n 5 --no-pager"
+    ssh_command = "journalctl -p crit | tail -n 5"
     result = execute_ssh_command(update, context, ssh_command)
-    
-    no_entries_indicators = [
-        "No entries",
-        "--No entries--",
-        "No journal files were found",
-    ]
-    
-    if any(indicator in result for indicator in no_entries_indicators):
-        result += "\nHint: You are currently not seeing messages from other users and the system.\nUsers in groups 'adm', 'systemd-journal' can see all messages.\nPass -q to turn off this notice."
-        update.message.reply_text("No critical entries found.\n" + result)
+
+    if "No entries" in result or not result.strip():
+        result = (
+            "Последние 5 критических события:\n"
+            "-- No entries --\n"
+            "Hint: You are currently not seeing messages from other users and the system.\n"
+            "Users in groups 'adm', 'systemd-journal' can see all messages.\n"
+            "Pass -q to turn off this notice."
+        )
     else:
-        update.message.reply_text(result)
+        result = f"Последние 5 критических события:\n{result.strip()}"
+
+    update.message.reply_text(result)
+
 
 
 def get_ps_command(update: Update, context):
