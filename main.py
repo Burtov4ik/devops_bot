@@ -97,7 +97,7 @@ def get_critical_command(update, context):
     
     no_entries_indicators = [
         "No entries",
-        "-- No entries --",
+        "--No entries--",
         "No journal files were found",
     ]
     
