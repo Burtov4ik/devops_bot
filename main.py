@@ -90,23 +90,18 @@ def get_auths_command(update: Update, context):
     ssh_command = "last -n 10"
     return execute_ssh_command(update, context, ssh_command)
 
-def get_critical(update, context):
+def get_critical_command(update, context):
     """Отправить последние 5 критических событий"""
     ssh_command = "journalctl -p crit | tail -n 5"
-    result = execute_ssh_command(ssh_command)
-
-    if "No entries" in result or "-- No entries --" in result:
-        result = (
-            "-- No entries --\n"
-            "Hint: You are currently not seeing messages from other users and the system.\n"
-            "Users in groups 'adm', 'systemd-journal' can see all messages.\n"
-            "Pass -q to turn off this notice."
-        )
+    result = execute_ssh_command(update, context, ssh_command)
     
-    if not result.strip():
+    if "No entries" in result:
+        result += "\nHint: You are currently not seeing messages from other users and the system.\nUsers in groups 'adm', 'systemd-journal' can see all messages.\nPass -q to turn off this notice."
+    
+    if not result.strip() or "-- No entries --" in result:
         update.message.reply_text("No critical entries found.")
     else:
-        update.message.reply_text(f"Последние 5 критических события:\n{result}")
+        update.message.reply_text(result)
 
 
 def get_ps_command(update: Update, context):
