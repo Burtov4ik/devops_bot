@@ -142,7 +142,7 @@ def execute_ssh_command(update: Update, context, ssh_command, host=RM_HOST, port
 
 
 def get_repl_logs(update, context):
-    ssh_command = 'cat /var/log/postgresql/postgresql-14-main.log | grep replication | head -10'
+    ssh_command = 'cat /var/log/postgresql/postgresql-14-main.log | grep repl | head -10'
     return execute_ssh_command(update, context, ssh_command)
 
 def get_services(update, context):
