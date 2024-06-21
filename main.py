@@ -93,7 +93,7 @@ def get_auths_command(update: Update, context):
 def get_critical_command(update, context):
     """Отправить последние 5 критических событий"""
     ssh_command = "journalctl -p crit | tail -n 5"
-    result = execute_ssh_command(update, context, ssh_command)
+    result = run_ssh_command(update, context, ssh_command)
 
     if "No entries" in result or "-- No entries --" in result:
         result = (
