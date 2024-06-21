@@ -92,16 +92,21 @@ def get_auths_command(update: Update, context):
 
 def get_critical_command(update, context):
     """Отправить последние 5 критических событий"""
-    ssh_command = "journalctl -p crit | tail -n 5"
+    ssh_command = "journalctl -p 2 -n 5 --no-pager"
     result = execute_ssh_command(update, context, ssh_command)
     
-    if "No entries" in result:
-        result += "\nHint: You are currently not seeing messages from other users and the system.\nUsers in groups 'adm', 'systemd-journal' can see all messages.\nPass -q to turn off this notice."
+    no_entries_indicators = [
+        "No entries",
+        "-- No entries --",
+        "No journal files were found",
+    ]
     
-    if not result.strip() or "-- No entries --" in result:
-        update.message.reply_text("No critical entries found.")
+    if any(indicator in result for indicator in no_entries_indicators):
+        result += "\nHint: You are currently not seeing messages from other users and the system.\nUsers in groups 'adm', 'systemd-journal' can see all messages.\nPass -q to turn off this notice."
+        update.message.reply_text("No critical entries found.\n" + result)
     else:
         update.message.reply_text(result)
+
 
 def get_ps_command(update: Update, context):
     ssh_command = "ps"
@@ -142,8 +147,32 @@ def execute_ssh_command(update: Update, context, ssh_command, host=RM_HOST, port
 
 
 def get_repl_logs(update, context):
-    ssh_command = 'cat /var/log/postgresql/postgresql-14-main.log | grep repl | head -10'
-    return execute_ssh_command(update, context, ssh_command)
+    user = update.effective_user
+    log_file_path = "/var/log/postgresql/postgresql-14-main.log"  # Убедитесь, что путь к файлу логов указан правильно
+    command = f"cat {log_file_path} | grep repl | tail -n 15"
+    res = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    
+    if res.returncode != 0 or res.stderr.decode():
+        error_message = res.stderr.decode().strip()
+        update.message.reply_text(f"Can not open log file! Error: {error_message}")
+    else:
+        log_output = res.stdout.decode().strip('\n')
+        if log_output:
+            update.message.reply_text(log_output)
+        else:
+            update.message.reply_text("No replication logs found.")
+
+# Дополнительная функция для диагностики прав доступа и существования файла
+def check_log_file(update, context):
+    log_file_path = "/var/log/postgresql/postgresql-14-main.log"  # Убедитесь, что путь к файлу логов указан правильно
+    command = f"ls -l {log_file_path}"
+    res = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    
+    if res.returncode != 0 or res.stderr.decode():
+        error_message = res.stderr.decode().strip()
+        update.message.reply_text(f"Log file check failed! Error: {error_message}")
+    else:
+        update.message.reply_text(res.stdout.decode().strip())
 
 def get_services(update, context):
     return run_ssh_command(update, context, 'systemctl list-units --type=service | tail -n 20')
